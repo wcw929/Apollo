@@ -133,10 +133,11 @@ function updateStats(stores) {
 // 渲染门店列表
 function renderStores(stores) {
     const content = document.getElementById('content');
+    const contentInner = content.querySelector('.content-inner');
     const emptyState = document.getElementById('empty-state');
 
     // 清除所有门店元素和日期分组，但保留emptyState
-    const storeItems = content.querySelectorAll('.store-item, .date-group, .date-header');
+    const storeItems = contentInner.querySelectorAll('.store-item, .date-group, .date-header');
     storeItems.forEach(item => item.remove());
 
     // 根据当前标签过滤门店
@@ -178,12 +179,12 @@ function renderStores(stores) {
 
         // 创建日期标题
         const dateHeader = createDateHeader(dateKey, storesInGroup.length);
-        content.appendChild(dateHeader);
+        contentInner.appendChild(dateHeader);
 
         // 创建并添加该日期下的门店元素
         storesInGroup.forEach(store => {
             const storeElement = createStoreElement(store);
-            content.appendChild(storeElement);
+            contentInner.appendChild(storeElement);
         });
     });
 
