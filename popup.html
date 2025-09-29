@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>门店暂存助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 520px;
+            min-height: 600px;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f8f8f8;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ffd100 0%, #ffb000 100%);
+            padding: 24px 20px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .kangaroo-icon {
+            width: 48px;
+            height: 48px;
+            background: url('icons/kangaroo.jpeg') no-repeat center;
+            background-size: contain;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            margin-top: -12px;
+            position: relative;
+            z-index: 3;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 20px 8px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: white;
+        }
+
+        .nav-tab:first-child {
+            border-radius: 12px 0 0 0;
+        }
+
+        .nav-tab:last-child {
+            border-radius: 0 12px 0 0;
+        }
+
+        .nav-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 24px;
+            height: 3px;
+            background: #ffd100;
+            border-radius: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-tab.active::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        .nav-tab:hover {
+            background: #fafafa;
+        }
+
+        .nav-tab.active {
+            background: white;
+        }
+
+        .nav-tab .tab-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd100;
+            display: block;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .nav-tab .tab-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+            display: block;
+        }
+
+        .nav-tab.active .tab-label {
+            color: #333;
+        }
+
+        .content {
+            background: white;
+            padding: 0;
+            max-height: 380px;
+            overflow-y: auto;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .content-inner {
+            padding: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .kangaroo-large {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQwIDc2QzYwLjI1MDUgNzYgNzYgNjAuMjUwNSA3NiA0MEM3NiAxOS43NDk1IDYwLjI1MDUgNCA0MCA0QzE5Ljc0OTUgNCA0IDE5Ljc0OTUgNCA0MEM0IDYwLjI1MDUgMTkuNzQ5NSA3NiA0MCA3NloiIGZpbGw9IiNGRkQ0MDAiLz4KPHBhdGggZD0iTTYwIDMzQzYwIDQwLjM2NCA1My4zNjQgNDcgNDYgNDdDMzguNjM2IDQ3IDMyIDQwLjM2NCAzMiAzM0MzMiAyNS42MzYgMzguNjM2IDE5IDQ2IDE5QzUzLjM2NCAxOSA2MCAyNS42MzYgNjAgMzNaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTMgMzNDNTMgMzYuODY2IDQ5Ljg2NiA0MCA0NiA0MEM0Mi4xMzQgNDAgMzkgMzYuODY2IDM5IDMzQzM5IDI5LjEzNCA0Mi4xMzQgMjYgNDYgMjZDNDkuODY2IDI2IDUzIDI5LjEzNCA1MyAzM1oiIGZpbGw9IiMzMzMiLz4KPHBhdGggZD0iTTMzIDYwQzI2IDYwIDIwIDUzIDIwIDQ2QzIwIDM5IDI2IDMzIDMzIDMzQzQwIDMzIDQ2IDM5IDQ2IDQ2QzQ2IDUzIDQwIDYwIDMzIDYwWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTMzIDUzQzI5IDUzIDI2IDUwIDI2IDQ2QzI2IDQyIDI5IDM5IDMzIDM5QzM3IDM5IDQwIDQyIDQwIDQ2QzQwIDUwIDM3IDUzIDMzIDUzWiIgZmlsbD0iIzMzMyIvPgo8L3N2Zz4K') no-repeat center;
+            background-size: contain;
+            opacity: 0.6;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            color: #999;
+            line-height: 1.5;
+        }
+
+        .store-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .store-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #ffd100, #ffb000);
+        }
+
+        .store-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #ffd100;
+        }
+
+        .store-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .store-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .store-notes {
+            font-size: 13px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            line-height: 1.5;
+            border-left: 3px solid #ffd100;
+        }
+
+        .follow-up-time {
+            font-size: 13px;
+            color: #ff6b35;
+            background: rgba(255, 107, 53, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .store-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd100, #ffb000);
+            color: #333;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 209, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            color: #333;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .status-contacted {
+            background: linear-gradient(135deg, #d4edda, #00b894);
+            color: white;
+        }
+
+
+        .time-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .time-info::before {
+            content: '🕒';
+            font-size: 11px;
+        }
+
+        /* 日期分组样式 */
+        .date-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 12px 16px;
+            margin: 0 0 12px 0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            border-left: 4px solid #ffd100;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .date-header:hover {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            transform: translateY(-1px);
+        }
+
+        .date-header:first-child {
+            margin-top: 0;
+        }
+
+        .content-inner .date-header:first-child {
+            margin-top: 0;
+        }
+
+        .date-header .date-toggle {
+            font-size: 12px;
+            margin-right: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #6c757d;
+            width: 16px;
+            text-align: center;
+        }
+
+        .date-header.collapsed .date-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .date-header .date-text {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .date-header .date-count {
+            background: linear-gradient(135deg, #ffd100, #ffb000);
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* 滚动条样式 */
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #ffd100, #ffb000);
+            border-radius: 3px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ffb000, #ff9500);
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 550px) {
+            body {
+                width: 100vw;
+            }
+
+            .store-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                flex: none;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .store-item {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="kangaroo-icon"></div>
+            <div class="header-text">
+                <h1>门店暂存助手</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-tab="all">
+            <span class="tab-number" id="total-count">0</span>
+            <span class="tab-label">全部</span>
+        </div>
+        <div class="nav-tab" data-tab="pending">
+            <span class="tab-number" id="pending-count">0</span>
+            <span class="tab-label">待跟进</span>
+        </div>
+        <div class="nav-tab" data-tab="contacted">
+            <span class="tab-number" id="contacted-count">0</span>
+            <span class="tab-label">已联系</span>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <div class="content-inner">
+            <div class="empty-state" id="empty-state">
+                <div class="kangaroo-large"></div>
+                <h3>暂无门店信息</h3>
+                <p>在阿波罗CRM页面点击"暂存门店"按钮开始使用<br>让美团袋鼠帮您高效管理门店信息</p>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="popup.js"></script>
+</body>
+</html>

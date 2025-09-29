@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "美团阿波罗门店暂存助手",
+  "version": "1.0.0",
+  "description": "在美团阿波罗CRM平台上暂存门店信息，方便后续跟进联系",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://apollo.meituan.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://apollo.meituan.com/crm-platform*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "门店暂存助手"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
