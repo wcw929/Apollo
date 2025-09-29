@@ -4,6 +4,7 @@ let currentTab = 'all';
 document.addEventListener('DOMContentLoaded', function() {
     console.log('弹出页面DOM加载完成');
     loadStores();
+    checkUpcomingReminders();
 
     // 初始化清空按钮文本
     updateClearButtonText();
@@ -676,39 +677,52 @@ async function editStore(storeId) {
 
     } catch (error) {
         console.error('获取门店信息失败:', error);
-        alert('获取门店信息失败，请重试');
+        console.error('错误详情:', error.stack);
+        alert('获取门店信息失败，请重试: ' + error.message);
     }
 }
 
 // 显示编辑模态框
 function showEditModal(store) {
-    // 创建编辑模态框
-    const modal = document.createElement('div');
-    modal.id = 'edit-store-modal';
-    modal.className = 'store-temp-modal';
+    try {
+        console.log('showEditModal被调用，门店信息:', store);
 
-    // 根据门店状态决定备注处理方式
-    const existingNotes = store.notes || '';
-    const currentTime = new Date().toLocaleString('zh-CN');
-    let notesContent = '';
-    let notesTip = '';
+        // 创建编辑模态框
+        const modal = document.createElement('div');
+        modal.id = 'edit-store-modal';
+        modal.className = 'store-temp-modal';
 
-    if (store.status === 'pending') {
-        // 待跟进状态：直接修改，不追加
-        notesContent = existingNotes;
-        notesTip = '💡 提示：当前为待跟进状态，可直接修改备注信息';
-    } else {
-        // 已联系或已完成状态：追加备注
-        if (existingNotes.trim()) {
-            // 如果有现有备注，保留并添加分隔线
-            notesContent = existingNotes + '\n\n' + '='.repeat(30) + '\n' +
-                          `【${currentTime} 更新】\n`;
+        // 根据门店状态决定备注处理方式
+        const existingNotes = store.notes || '';
+        const currentTime = new Date().toLocaleString('zh-CN');
+        let notesContent = '';
+        let notesTip = '';
+
+        if (store.status === 'pending') {
+            // 待跟进状态：直接修改，不追加
+            notesContent = existingNotes;
+            notesTip = '💡 提示：当前为待跟进状态，可直接修改备注信息';
         } else {
-            // 如果没有现有备注，直接添加时间戳
-            notesContent = `【${currentTime} 记录】\n`;
+            // 已联系或已完成状态：追加备注
+            if (existingNotes.trim()) {
+                // 如果有现有备注，保留并添加分隔线
+                notesContent = existingNotes + '\n\n' + '='.repeat(30) + '\n' +
+                              `【${currentTime} 更新】\n`;
+            } else {
+                // 如果没有现有备注，直接添加时间戳
+                notesContent = `【${currentTime} 记录】\n`;
+            }
+            notesTip = '💡 提示：原有备注已保留，请在下方继续添加新的沟通记录';
         }
-        notesTip = '💡 提示：原有备注已保留，请在下方继续添加新的沟通记录';
-    }
+
+        // 安全地格式化日期时间
+        let followUpTimeValue = '';
+        try {
+            followUpTimeValue = formatDateTimeForInput(store.followUpTime || '');
+        } catch (dateError) {
+            console.warn('格式化日期时间失败:', dateError);
+            followUpTimeValue = '';
+        }
 
     modal.innerHTML = `
         <div class="modal-content">
@@ -732,7 +746,7 @@ function showEditModal(store) {
                     </div>
                     <div class="form-group">
                         <label for="edit-follow-up-time">下次跟进时间：</label>
-                        <input type="datetime-local" id="edit-follow-up-time" name="followUpTime" value="${store.followUpTime || ''}">
+                        <input type="datetime-local" id="edit-follow-up-time" name="followUpTime" value="${followUpTimeValue}" placeholder="选择跟进时间">
                     </div>
                     <div class="form-group">
                         <label for="edit-notes">备注信息：</label>
@@ -888,6 +902,7 @@ function showEditModal(store) {
         .store-temp-modal .btn-save:hover {
             background-color: #e55a2b;
         }
+
     `;
 
     // 如果样式还没有添加过，就添加
@@ -917,6 +932,12 @@ function showEditModal(store) {
 
     // 显示模态框
     modal.style.display = 'flex';
+
+    } catch (error) {
+        console.error('显示编辑模态框失败:', error);
+        console.error('错误详情:', error.stack);
+        alert('显示编辑窗口失败: ' + error.message);
+    }
 }
 
 // 隐藏编辑模态框
@@ -968,6 +989,42 @@ async function handleEditFormSubmit(e, storeId, modal) {
     }
 }
 
+
+// 格式化日期时间用于datetime-local输入框
+function formatDateTimeForInput(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return '';
+
+    // datetime-local需要 "YYYY-MM-DDTHH:MM" 格式
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// 格式化跟进时间用于显示
+function formatFollowUpTimeForDisplay(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+
+    // 格式化为 "2024年1月15日 14:30"
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+}
+
 // 显示成功消息
 function showSuccessMessage(message) {
     const notification = document.createElement('div');
@@ -994,6 +1051,160 @@ function showSuccessMessage(message) {
             notification.parentNode.removeChild(notification);
         }
     }, 3000);
+}
+
+// 检查即将到期的提醒
+async function checkUpcomingReminders() {
+    try {
+        const result = await chrome.storage.local.get(['tempStores']);
+        const stores = result.tempStores || [];
+
+        const now = new Date();
+        const upcomingReminders = [];
+
+        stores.forEach(store => {
+            if (store.followUpTime && store.status === 'pending') {
+                const followUpTime = new Date(store.followUpTime);
+                const timeDiff = followUpTime.getTime() - now.getTime();
+
+                // 检查是否在接下来的1小时内需要跟进
+                if (timeDiff > 0 && timeDiff <= 60 * 60 * 1000) {
+                    upcomingReminders.push({
+                        ...store,
+                        minutesLeft: Math.ceil(timeDiff / (60 * 1000))
+                    });
+                }
+            }
+        });
+
+        if (upcomingReminders.length > 0) {
+            showUpcomingRemindersNotice(upcomingReminders);
+        }
+
+    } catch (error) {
+        console.error('检查即将到期的提醒失败:', error);
+    }
+}
+
+// 显示即将到期的提醒通知
+function showUpcomingRemindersNotice(reminders) {
+    const content = document.getElementById('content');
+    const contentInner = content.querySelector('.content-inner');
+
+    // 检查是否已经有提醒通知
+    const existingNotice = contentInner.querySelector('.upcoming-reminders-notice');
+    if (existingNotice) {
+        existingNotice.remove();
+    }
+
+    // 创建提醒通知元素
+    const notice = document.createElement('div');
+    notice.className = 'upcoming-reminders-notice';
+    notice.innerHTML = `
+        <div class="notice-header">
+            <span class="notice-icon">⏰</span>
+            <span class="notice-title">即将到期的跟进提醒</span>
+            <span class="notice-close">&times;</span>
+        </div>
+        <div class="notice-content">
+            ${reminders.map(reminder => `
+                <div class="reminder-item">
+                    <span class="reminder-store">${escapeHtml(reminder.storeName || '未知门店')}</span>
+                    <span class="reminder-time">${reminder.minutesLeft}分钟后</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .upcoming-reminders-notice {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffd100;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(255, 209, 0, 0.2);
+        }
+
+        .notice-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 209, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 209, 0, 0.2);
+        }
+
+        .notice-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .notice-title {
+            flex: 1;
+            font-weight: 600;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .notice-close {
+            cursor: pointer;
+            font-size: 18px;
+            color: #856404;
+            line-height: 1;
+            padding: 2px;
+        }
+
+        .notice-close:hover {
+            color: #533f03;
+        }
+
+        .notice-content {
+            padding: 12px 16px;
+        }
+
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 209, 0, 0.1);
+        }
+
+        .reminder-item:last-child {
+            border-bottom: none;
+        }
+
+        .reminder-store {
+            font-weight: 500;
+            color: #856404;
+        }
+
+        .reminder-time {
+            font-size: 12px;
+            color: #856404;
+            background: rgba(255, 209, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+    `;
+
+    // 如果样式还没有添加过，就添加
+    if (!document.getElementById('reminder-notice-styles')) {
+        style.id = 'reminder-notice-styles';
+        document.head.appendChild(style);
+    }
+
+    // 添加关闭事件
+    const closeBtn = notice.querySelector('.notice-close');
+    closeBtn.addEventListener('click', () => {
+        notice.remove();
+    });
+
+    // 插入到内容区域的开头
+    const firstChild = contentInner.firstChild;
+    contentInner.insertBefore(notice, firstChild);
 }
 
 // 函数现在通过事件监听器调用，不需要暴露到全局作用域

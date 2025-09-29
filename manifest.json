@@ -5,11 +5,16 @@
   "description": "在美团阿波罗CRM平台上暂存门店信息，方便后续跟进联系",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "https://apollo.meituan.com/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://apollo.meituan.com/crm-platform*"],
