@@ -12,11 +12,14 @@
         }
 
         body {
-            width: 520px;
-            min-height: 600px;
+            width: 390px;
+            min-width: 390px;
+            max-width: 390px;
+            min-height: 500px;
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
             background: #f8f8f8;
             color: #333;
+            overflow-x: hidden;
         }
 
         .header {
@@ -162,7 +165,9 @@
             padding: 0;
             max-height: 380px;
             overflow-y: auto;
+            overflow-x: hidden;
             border-radius: 0 0 12px 12px;
+            width: 100%;
         }
 
         .content-inner {
@@ -265,21 +270,24 @@
 
         .store-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-top: 16px;
             flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 20px;
-            font-size: 13px;
+            border-radius: 16px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex: 1;
-            min-width: 70px;
+            min-width: 60px;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -345,6 +353,29 @@
             color: white;
         }
 
+        .footer {
+            padding: 20px;
+            background: #f8f8f8;
+        }
+
+        .footer-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .footer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
 
         .time-info {
             font-size: 12px;
@@ -441,7 +472,7 @@
         }
 
         /* 响应式优化 */
-        @media (max-width: 550px) {
+        @media (max-width: 380px) {
             body {
                 width: 100vw;
             }
@@ -507,6 +538,9 @@
         </div>
     </div>
 
+    <!-- <div class="footer">
+        <button class="footer-btn" id="clear-all-btn">清空所有记录</button>
+    </div> -->
 
     <script src="popup.js"></script>
 </body>
