@@ -746,7 +746,7 @@ function showEditModal(store) {
                     </div>
                     <div class="form-group">
                         <label for="edit-follow-up-time">下次跟进时间：</label>
-                        <input type="datetime-local" id="edit-follow-up-time" name="followUpTime" value="${followUpTimeValue}" placeholder="选择跟进时间">
+                        <input type="datetime-local" id="edit-follow-up-time" name="followUpTime" value="${followUpTimeValue}" min="${new Date().toISOString().slice(0, 16)}" placeholder="选择跟进时间">
                     </div>
                     <div class="form-group">
                         <label for="edit-notes">备注信息：</label>

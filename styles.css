@@ -418,6 +418,16 @@
     font-weight: 600;
 }
 
+.day-cell.past-date {
+    color: #ccc !important;
+    background-color: #f9f9f9;
+    cursor: not-allowed !important;
+}
+
+.day-cell.past-date:hover {
+    background-color: #f9f9f9 !important;
+}
+
 .time-selector {
     border-top: 1px solid #eee;
     padding-top: 12px;

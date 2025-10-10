@@ -170,8 +170,19 @@
                 dayCell.className = 'day-cell';
                 dayCell.textContent = cellDate.getDate();
 
+                // 检查是否是过去的日期
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const checkDate = new Date(cellDate);
+                checkDate.setHours(0, 0, 0, 0);
+
                 if (cellDate.getMonth() !== month) {
                     dayCell.classList.add('other-month');
+                }
+
+                if (checkDate < today) {
+                    dayCell.classList.add('past-date');
+                    dayCell.style.cursor = 'not-allowed';
                 }
 
                 if (selectedDate &&
@@ -186,6 +197,18 @@
                 }
 
                 dayCell.addEventListener('click', () => {
+                    // 检查是否是过去的日期
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // 重置时间为当天0点
+                    const clickedDate = new Date(cellDate);
+                    clickedDate.setHours(0, 0, 0, 0);
+
+                    if (clickedDate < today) {
+                        // 显示提示信息
+                        showNotification('不能选择过去的日期', 'error');
+                        return;
+                    }
+
                     selectedDate = new Date(cellDate);
                     document.querySelectorAll('.day-cell.selected').forEach(cell => {
                         cell.classList.remove('selected');
