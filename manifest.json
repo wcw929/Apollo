@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "美团阿波罗门店暂存助手",
-  "version": "1.0.0",
-  "description": "在美团阿波罗CRM平台上暂存门店信息，方便后续跟进联系",
+  "version": "2.1.0",
+  "description": "在美团阿波罗平台上暂存门店信息，方便后续跟进联系",
   "permissions": [
     "storage",
     "activeTab",

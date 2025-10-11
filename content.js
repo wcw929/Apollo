@@ -105,7 +105,7 @@
             const now = new Date();
             selectedDate = now;
             hourSelect.value = now.getHours().toString().padStart(2, '0');
-            minuteSelect.value = Math.floor(now.getMinutes() / 10) * 10;
+            minuteSelect.value = (Math.floor(now.getMinutes() / 10) * 10).toString().padStart(2, '0');
             updateDisplay();
             popup.style.display = 'none';
             display.classList.remove('active');
@@ -371,7 +371,14 @@
             }
 
             // 转换为 datetime-local 格式 (YYYY-MM-DDTHH:mm)
-            const result = dateTime.toISOString().slice(0, 16);
+            // 不使用toISOString()避免时区转换问题
+            const resultYear = dateTime.getFullYear();
+            const resultMonth = (dateTime.getMonth() + 1).toString().padStart(2, '0');
+            const resultDay = dateTime.getDate().toString().padStart(2, '0');
+            const resultHour = dateTime.getHours().toString().padStart(2, '0');
+            const resultMinute = dateTime.getMinutes().toString().padStart(2, '0');
+
+            const result = `${resultYear}-${resultMonth}-${resultDay}T${resultHour}:${resultMinute}`;
             console.log('日期时间解析成功:', result);
             return result;
 
